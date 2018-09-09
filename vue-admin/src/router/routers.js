@@ -12,7 +12,7 @@ export default [
     {
         path: '/login',
         name: 'login',
-        component: () => import('../views/About.vue'),
+        component: () => import('../views/login/Login.vue'),
         meta: {
             title: '后台管理系统-关于'
         }
