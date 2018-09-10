@@ -1,5 +1,6 @@
 package club.javalearn.admin.controller;
 
+import club.javalearn.admin.common.ServerResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -20,7 +21,8 @@ public class LoginController {
 
     @RequestMapping("/login")
     public Object login(@RequestParam("userName") String userName, @RequestParam("password") String password) {
+        ServerResponse serverResponse = ServerResponse.createBySuccessMessage("登录成功");
         log.info("用户名:{},密码:{}", userName, password);
-        return "登录成功";
+        return serverResponse;
     }
 }
