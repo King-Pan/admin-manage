@@ -21,6 +21,7 @@
 </template>
 
 <script>
+
     export default {
         name: 'LoginForm',
         props: {
@@ -62,6 +63,18 @@
                 this.$refs.loginForm.validate((valid) => {
                     if (valid) {
                         console.log('登陆成功')
+                        var data = {userName: 'admin', password: '123456'}
+                        this.$axios.post("/sso/login", this.$qs.stringify({
+                            userName: 'admin',
+                            password: '123456'
+                        }, {indices: false}), response => {
+                            if (response.status >= 200 && response.status < 300) {
+                                console.log(response.data);
+                            } else {
+                                console.log(response.message);
+                            }
+                            console.log(response)
+                        })
                     }
                 })
             }

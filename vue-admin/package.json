@@ -3,15 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve",
+    "serve": "vue-cli-service serve --open --inline --progress",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
     "axios": "^0.18.0",
     "echarts": "^4.1.0",
+    "http-proxy-middleware": "^0.19.0",
     "iview": "^3.1.0",
     "js-cookie": "^2.2.0",
+    "qs": "^6.5.2",
     "vue": "^2.5.17",
     "vue-router": "^3.0.1",
     "vue-wechat-title": "^2.0.4",

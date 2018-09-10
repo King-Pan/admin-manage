@@ -13,6 +13,8 @@ const router = new Router({
 })
 
 
+
+
 router.beforeEach((to, from, next) => {
   //判断是否登录
   const token = getToken()

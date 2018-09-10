@@ -12,6 +12,7 @@ export default {
             production: 'http://10.10.40.106:9090',
             development: 'http://10.10.40.106:9090',
             test: 'http://10.10.40.106:9090'
-        }
+        },
+        TOKEN_KEY: 'user_token_key'
     }
 }
