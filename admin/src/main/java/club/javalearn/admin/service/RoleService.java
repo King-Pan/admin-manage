@@ -30,6 +30,7 @@ public interface RoleService {
      * 分页查询用户未选择的角色信息
      *
      * @param userId 用户ID
+     * @param name 角色名
      * @param pageable 分页参数
      * @return 用户信息列表
      */

@@ -1,9 +1,10 @@
 package club.javalearn.admin.config;
 
-import club.javalearn.admin.filter.JwtFilter;
-import club.javalearn.admin.shiro.CustomRealm;
-import org.apache.shiro.mgt.DefaultSessionStorageEvaluator;
-import org.apache.shiro.mgt.DefaultSubjectDAO;
+import at.pollux.thymeleaf.shiro.dialect.ShiroDialect;
+import club.javalearn.admin.shiro.CustomFormAuthenticationFilter;
+import club.javalearn.admin.shiro.DefaultAuthorizingRealm;
+import club.javalearn.admin.shiro.LoginLimitHashedCredentialsMatcher;
+import net.sf.ehcache.CacheManager;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.spring.LifecycleBeanPostProcessor;
 import org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor;
@@ -13,9 +14,7 @@ import org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreato
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import javax.servlet.Filter;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.LinkedHashMap;
 
 /**
  * Created with IntelliJ IDEA.
@@ -28,72 +27,129 @@ import java.util.Map;
 @Configuration
 public class ShiroConfig {
 
+    @Bean(name = "shiroFilter")
+    public ShiroFilterFactoryBean shiroFilter() {
+        ShiroFilterFactoryBean bean = new ShiroFilterFactoryBean();
+        bean.setSecurityManager(securityManager());
+        //配置登录的url和登录成功的url
+        bean.setLoginUrl("/loginPage");
+        bean.setSuccessUrl("/index");
+        //
+        bean.setUnauthorizedUrl("/error/403");
+        //配置访问权限
+        LinkedHashMap<String, String> filterChainDefinitionMap = new LinkedHashMap<>();
+        //表示可以匿名访问
+        filterChainDefinitionMap.put("/login", "anon");
+        filterChainDefinitionMap.put("/loginPage", "anon");
+        filterChainDefinitionMap.put("/swagger-ui.html", "anon");
+        filterChainDefinitionMap.put("/static/**", "anon");
+        filterChainDefinitionMap.put("/swagger/**", "anon");
+        filterChainDefinitionMap.put("/swagger-resources/**", "anon");
+        filterChainDefinitionMap.put("/v2/**", "anon");
+
+        filterChainDefinitionMap.put("/webjars/**", "anon");
+        filterChainDefinitionMap.put("/js/**", "anon");
+        filterChainDefinitionMap.put("/css/**", "anon");
+        filterChainDefinitionMap.put("/h-ui/**", "anon");
+        filterChainDefinitionMap.put("/h-ui.admin/**", "anon");
+        //shiro已经替我们实现了
+        filterChainDefinitionMap.put("/logout", "logout");
+
+        //表示需要认证才可以访问
+        filterChainDefinitionMap.put("/*", "authc");
+        //表示需要认证才可以访问
+        filterChainDefinitionMap.put("/**", "authc");
+        filterChainDefinitionMap.put("/*.*", "authc");
+        bean.setFilterChainDefinitionMap(filterChainDefinitionMap);
+        return bean;
+    }
+
+
     /**
-     * 先走 filter ，然后 filter 如果检测到请求头存在 token，则用 token 去 login，走 Realm 去验证
+     * 开启thymeleaf-extras-shiro功能
+     *
+     * @return ShiroDialect
      */
     @Bean
-    public ShiroFilterFactoryBean factory(SecurityManager securityManager) {
-        ShiroFilterFactoryBean factoryBean = new ShiroFilterFactoryBean();
-
-        // 添加自己的过滤器并且取名为jwt
-        Map<String, Filter> filterMap = new HashMap<>(5);
-        //设置我们自定义的JWT过滤器
-        filterMap.put("jwt", new JwtFilter());
-        factoryBean.setFilters(filterMap);
-        factoryBean.setSecurityManager(securityManager);
-        // 设置无权限时跳转的 url;
-        factoryBean.setUnauthorizedUrl("/unauthorized/无权限");
-        Map<String, String> filterRuleMap = new HashMap<>();
-        // 所有请求通过我们自己的JWT Filter
-        filterRuleMap.put("/**", "jwt");
-        // 访问 /unauthorized/** 不通过JWTFilter
-        filterRuleMap.put("/unauthorized/**", "anon");
-        factoryBean.setFilterChainDefinitionMap(filterRuleMap);
-        return factoryBean;
+    public ShiroDialect shiroDialect() {
+        return new ShiroDialect();
     }
 
     /**
-     * 注入 securityManager
+     * 配置核心安全事务管理器
+     *
+     * @return SecurityManager
      */
     @Bean
-    public SecurityManager securityManager(CustomRealm customRealm) {
-        DefaultWebSecurityManager securityManager = new DefaultWebSecurityManager();
-        // 设置自定义 realm.
-        securityManager.setRealm(customRealm);
-
-        /*
-         * 关闭shiro自带的session，详情见文档
-         * http://shiro.apache.org/session-management.html#SessionManagement-StatelessApplications%28Sessionless%29
-         */
-        DefaultSubjectDAO subjectDAO = new DefaultSubjectDAO();
-        DefaultSessionStorageEvaluator defaultSessionStorageEvaluator = new DefaultSessionStorageEvaluator();
-        defaultSessionStorageEvaluator.setSessionStorageEnabled(false);
-        subjectDAO.setSessionStorageEvaluator(defaultSessionStorageEvaluator);
-        securityManager.setSubjectDAO(subjectDAO);
-        return securityManager;
+    public SecurityManager securityManager() {
+        DefaultWebSecurityManager manager = new DefaultWebSecurityManager();
+        manager.setRealm(getDefaultAuthorizingRealm());
+        return manager;
     }
+
 
     /**
-     * 添加注解支持
+     * 配置自定义的权限登录器
      */
     @Bean
-    public DefaultAdvisorAutoProxyCreator defaultAdvisorAutoProxyCreator() {
-        DefaultAdvisorAutoProxyCreator defaultAdvisorAutoProxyCreator = new DefaultAdvisorAutoProxyCreator();
-        // 强制使用cglib，防止重复代理和可能引起代理出错的问题
-        // https://zhuanlan.zhihu.com/p/29161098
-        defaultAdvisorAutoProxyCreator.setProxyTargetClass(true);
-        return defaultAdvisorAutoProxyCreator;
+    public DefaultAuthorizingRealm getDefaultAuthorizingRealm() {
+        DefaultAuthorizingRealm authorizingRealm = new DefaultAuthorizingRealm();
+        // 配置自定义的密码比较器
+        authorizingRealm.setCredentialsMatcher(loginLimitHashedCredentialsMatcher());
+        return authorizingRealm;
     }
 
+
+    /**
+     * 配置自定义的密码比较器
+     *
+     * @return LoginLimitHashedCredentialsMatcher
+     */
     @Bean
-    public AuthorizationAttributeSourceAdvisor authorizationAttributeSourceAdvisor(SecurityManager securityManager) {
-        AuthorizationAttributeSourceAdvisor advisor = new AuthorizationAttributeSourceAdvisor();
-        advisor.setSecurityManager(securityManager);
-        return advisor;
+    public LoginLimitHashedCredentialsMatcher loginLimitHashedCredentialsMatcher() {
+        LoginLimitHashedCredentialsMatcher credentialsMatcher = new LoginLimitHashedCredentialsMatcher();
+        credentialsMatcher.setHashAlgorithmName("sha-1");
+        credentialsMatcher.setHashIterations(10);
+        return credentialsMatcher;
+    }
+
+
+    @Bean
+    public CustomFormAuthenticationFilter customFormAuthenticationFilter() {
+        CustomFormAuthenticationFilter formAuthenticationFilter = new CustomFormAuthenticationFilter();
+        formAuthenticationFilter.setLoginUrl("/loginPage");
+        formAuthenticationFilter.setPasswordParam("password");
+        formAuthenticationFilter.setUsernameParam("userName");
+        return formAuthenticationFilter;
     }
 
     @Bean
     public LifecycleBeanPostProcessor lifecycleBeanPostProcessor() {
         return new LifecycleBeanPostProcessor();
+    }
+
+    @Bean
+    public DefaultAdvisorAutoProxyCreator defaultAdvisorAutoProxyCreator() {
+        DefaultAdvisorAutoProxyCreator creator = new DefaultAdvisorAutoProxyCreator();
+        creator.setProxyTargetClass(true);
+        return creator;
+    }
+
+    /**
+     * 开启shiro aop注解支持.
+     * 使用代理方式;所以需要开启代码支持;
+     *
+     * @return AuthorizationAttributeSourceAdvisor
+     */
+    @Bean
+    public AuthorizationAttributeSourceAdvisor authorizationAttributeSourceAdvisor() {
+        AuthorizationAttributeSourceAdvisor advisor = new AuthorizationAttributeSourceAdvisor();
+        advisor.setSecurityManager(securityManager());
+        return advisor;
+    }
+
+    @Bean
+    public CacheManager cacheManager() {
+        return CacheManager.newInstance(CacheManager.class.getClassLoader().getResource("ehcache.xml"));
     }
 }

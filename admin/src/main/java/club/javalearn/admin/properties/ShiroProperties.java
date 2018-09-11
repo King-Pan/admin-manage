@@ -17,9 +17,8 @@ import org.springframework.stereotype.Component;
 @Getter
 @Setter
 @ToString
+@Component
 @ConfigurationProperties(prefix = "shiro")
 public class ShiroProperties {
-
     PasswordProperties password = new PasswordProperties();
-
 }
