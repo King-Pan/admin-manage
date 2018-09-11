@@ -22,3 +22,5 @@ shiro:
 logging:
   level:
     club.javalearn.admin: debug
+debug: true
+

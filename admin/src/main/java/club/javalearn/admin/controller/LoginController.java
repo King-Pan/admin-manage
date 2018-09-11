@@ -25,7 +25,7 @@ import javax.servlet.http.HttpSession;
  */
 @Slf4j
 @RestController
-@RequestMapping("/sso")
+//@RequestMapping("/sso")
 public class LoginController {
 
 
