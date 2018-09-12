@@ -1,6 +1,7 @@
 package club.javalearn.admin.config;
 
 import at.pollux.thymeleaf.shiro.dialect.ShiroDialect;
+import club.javalearn.admin.filter.JwtFilter;
 import club.javalearn.admin.shiro.CustomFormAuthenticationFilter;
 import club.javalearn.admin.shiro.DefaultAuthorizingRealm;
 import club.javalearn.admin.shiro.LoginLimitHashedCredentialsMatcher;
@@ -14,7 +15,10 @@ import org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreato
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import javax.servlet.Filter;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Created with IntelliJ IDEA.
@@ -31,6 +35,13 @@ public class ShiroConfig {
     public ShiroFilterFactoryBean shiroFilter() {
         ShiroFilterFactoryBean bean = new ShiroFilterFactoryBean();
         bean.setSecurityManager(securityManager());
+
+        // 添加自己的过滤器并且取名为jwt
+        Map<String, Filter> filterMap = new HashMap<>();
+        //设置我们自定义的JWT过滤器
+        filterMap.put("jwt", new JwtFilter());
+        bean.setFilters(filterMap);
+
         //配置登录的url和登录成功的url
         bean.setLoginUrl("/loginPage");
         bean.setSuccessUrl("/index");
@@ -60,7 +71,12 @@ public class ShiroConfig {
         //表示需要认证才可以访问
         filterChainDefinitionMap.put("/**", "authc");
         filterChainDefinitionMap.put("/*.*", "authc");
+        filterChainDefinitionMap.put("/**", "jwt");
+
         bean.setFilterChainDefinitionMap(filterChainDefinitionMap);
+
+
+
         return bean;
     }
 
