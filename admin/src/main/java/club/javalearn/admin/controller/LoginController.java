@@ -5,6 +5,7 @@ import club.javalearn.admin.common.ServerResponse;
 import club.javalearn.admin.model.User;
 import club.javalearn.admin.service.UserService;
 import club.javalearn.admin.utils.JwtUtil;
+import club.javalearn.admin.utils.PasswordHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
@@ -36,6 +37,10 @@ public class LoginController {
     @Autowired
     private UserService userService;
 
+
+    @Autowired
+    private PasswordHelper passwordHelper;
+
 //    @RequestMapping("/login2")
 //    public Object login3(@RequestParam("userName") String userName, @RequestParam("password") String password) {
 //        ServerResponse serverResponse = ServerResponse.createBySuccessMessage("登录成功");
@@ -48,15 +53,19 @@ public class LoginController {
     public Object login(@RequestParam("userName") String userName, @RequestParam("password") String password) {
         ServerResponse serverResponse;
         Boolean rememberMe = true;
-        UsernamePasswordToken token = new UsernamePasswordToken(userName, password, rememberMe);
+        //UsernamePasswordToken token = new UsernamePasswordToken(userName, password, rememberMe);
         //获取当前的Subject
-        Subject currentUser = SecurityUtils.getSubject();
+        //Subject currentUser = SecurityUtils.getSubject();
         try {
             // 在调用了login方法后,SecurityManager会收到AuthenticationToken,并将其发送给已配置的Realm执行必须的认证检查
             // 每个Realm都能在必要时对提交的AuthenticationTokens作出反应
             // 所以这一步在调用login(token)方法时,它会走到xxRealm.doGetAuthenticationInfo()方法中,具体验证方式详见此方法
-            currentUser.login(token);
-            User user = (User) SecurityUtils.getSubject().getPrincipal();
+            // currentUser.login(token);
+
+            User user = userService.findByUserName(userName);
+            if (user != null && user.getPassword().equals(passwordHelper.encryptPassword(user, password))) {
+                log.info("===============登录成功");
+            }
             session.setAttribute("user", user);
             userService.updateLastLoginTime(user);
 
