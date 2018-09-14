@@ -4,6 +4,7 @@ import club.javalearn.admin.model.Permission;
 import club.javalearn.admin.model.Role;
 import club.javalearn.admin.model.User;
 import club.javalearn.admin.service.UserService;
+import club.javalearn.admin.utils.JwtUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -44,10 +45,27 @@ public class DefaultAuthorizingRealm extends AuthorizingRealm {
      */
     @Override
     protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) throws AuthenticationException {
-        //获取用户输入的token
-        UsernamePasswordToken utoken = (UsernamePasswordToken) token;
-        String username = utoken.getUsername();
-        User user = userService.findByUserName(username);
+        String userName;
+        User user;
+        if (token instanceof JwtToken) {
+            JwtToken jwtToken = (JwtToken) token;
+            userName = JwtUtil.getUsername(jwtToken.getCredentials().toString());
+            if (userName == null) {
+                throw new AuthenticationException("token invalid");
+            }
+            user = userService.findByUserName(userName);
+            if (user == null) {
+                throw new AuthenticationException("User didn't existed!");
+            }
+            if (!JwtUtil.verify(jwtToken.getCredentials().toString(), userName, user.getPassword())) {
+                throw new AuthenticationException("Username or password error");
+            }
+        } else {
+            //获取用户输入的token
+            UsernamePasswordToken utoken = (UsernamePasswordToken) token;
+            userName = utoken.getUsername();
+            user = userService.findByUserName(userName);
+        }
         //放入shiro.调用CredentialsMatcher检验密码
         return new SimpleAuthenticationInfo(user, user.getPassword(), ByteSource.Util.bytes(user.getCredentialsSalt()), this.getClass().getName());
     }
@@ -69,10 +87,10 @@ public class DefaultAuthorizingRealm extends AuthorizingRealm {
                 Set<Permission> permissionList = role.getPermissions();
                 if (CollectionUtils.isNotEmpty(permissionList)) {
                     for (Permission permission : permissionList) {
-                        if(StringUtils.isNoneBlank(permission.getExpression())){
+                        if (StringUtils.isNoneBlank(permission.getExpression())) {
                             permissions.add(permission.getExpression());
-                        }else {
-                            log.error("{} 未配置 expression 属性",permission.getPermissionName());
+                        } else {
+                            log.error("{} 未配置 expression 属性", permission.getPermissionName());
                         }
 
                     }
@@ -89,5 +107,10 @@ public class DefaultAuthorizingRealm extends AuthorizingRealm {
     @Override
     public String getName() {
         return "DefaultAuthorizingRealm";
+    }
+
+    @Override
+    public boolean supports(AuthenticationToken token) {
+        return token instanceof JwtToken || token instanceof UsernamePasswordToken;
     }
 }

@@ -20,53 +20,24 @@ import java.util.Date;
 public class JwtUtil {
 
     /**
-     * 过期时间 24 小时
+     * 过期时间 30分钟
      */
-    private static final long EXPIRE_TIME = 60 * 24 * 60 * 1000;
+    private static final long EXPIRE_TIME = 30 * 60 * 1000;
 
     /**
-     * 密钥
-     */
-    private static final String SECRET = "SHIRO+JWT";
-
-    /**
-     * 生成 token, 5min后过期
+     * 校验token是否正确
      *
-     * @param username 用户名
-     * @return 加密的token
-     */
-    public static String createToken(String username) {
-        try {
-            Date date = new Date(System.currentTimeMillis() + EXPIRE_TIME);
-            Algorithm algorithm = Algorithm.HMAC256(SECRET);
-            // 附带username信息
-            return JWT.create()
-                    .withClaim("username", username)
-                    //到期时间
-                    .withExpiresAt(date)
-                    //创建一个新的JWT，并使用给定的算法进行标记
-                    .sign(algorithm);
-        } catch (UnsupportedEncodingException e) {
-            return null;
-        }
-    }
-
-    /**
-     * 校验 token 是否正确
-     *
-     * @param token    密钥
-     * @param username 用户名
+     * @param token  密钥
+     * @param secret 用户的密码
      * @return 是否正确
      */
-    public static boolean verify(String token, String username) {
+    public static boolean verify(String token, String username, String secret) {
         try {
-            Algorithm algorithm = Algorithm.HMAC256(SECRET);
-            //在token中附带了username信息
+            Algorithm algorithm = Algorithm.HMAC256(secret);
             JWTVerifier verifier = JWT.require(algorithm)
                     .withClaim("username", username)
                     .build();
-            //验证 token
-            verifier.verify(token);
+            DecodedJWT jwt = verifier.verify(token);
             return true;
         } catch (Exception exception) {
             return false;
@@ -83,6 +54,27 @@ public class JwtUtil {
             DecodedJWT jwt = JWT.decode(token);
             return jwt.getClaim("username").asString();
         } catch (JWTDecodeException e) {
+            return null;
+        }
+    }
+
+    /**
+     * 生成签名,30分钟后过期
+     *
+     * @param username 用户名
+     * @param secret   用户的密码
+     * @return 加密的token
+     */
+    public static String createToken(String username, String secret) {
+        try {
+            Date date = new Date(System.currentTimeMillis() + EXPIRE_TIME);
+            Algorithm algorithm = Algorithm.HMAC256(secret);
+            // 附带username信息
+            return JWT.create()
+                    .withClaim("username", username)
+                    .withExpiresAt(date)
+                    .sign(algorithm);
+        } catch (UnsupportedEncodingException e) {
             return null;
         }
     }

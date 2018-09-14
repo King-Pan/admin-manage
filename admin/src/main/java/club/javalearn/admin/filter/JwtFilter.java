@@ -2,6 +2,7 @@ package club.javalearn.admin.filter;
 
 import club.javalearn.admin.shiro.JwtToken;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.apache.shiro.web.filter.authc.BasicHttpAuthenticationFilter;
 import org.springframework.http.HttpStatus;
@@ -38,6 +39,7 @@ public class JwtFilter extends BasicHttpAuthenticationFilter {
                 return true;
             } catch (Exception e) {
                 //token 错误
+                log.error(e.getMessage(), e);
                 responseError(response, e.getMessage());
             }
         }

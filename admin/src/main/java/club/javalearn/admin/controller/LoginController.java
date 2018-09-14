@@ -1,16 +1,17 @@
 package club.javalearn.admin.controller;
 
+import club.javalearn.admin.common.ResponseCode;
 import club.javalearn.admin.common.ServerResponse;
 import club.javalearn.admin.model.User;
 import club.javalearn.admin.service.UserService;
+import club.javalearn.admin.utils.JwtUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpSession;
@@ -43,9 +44,9 @@ public class LoginController {
 //    }
 
 
-    @RequestMapping("/login")
-    public Object login2(@RequestParam("userName") String userName, @RequestParam("password") String password) {
-        ServerResponse serverResponse = ServerResponse.createBySuccessMessage("登录成功");
+    @PostMapping("/login")
+    public Object login(@RequestParam("userName") String userName, @RequestParam("password") String password) {
+        ServerResponse serverResponse;
         Boolean rememberMe = true;
         UsernamePasswordToken token = new UsernamePasswordToken(userName, password, rememberMe);
         //获取当前的Subject
@@ -58,13 +59,15 @@ public class LoginController {
             User user = (User) SecurityUtils.getSubject().getPrincipal();
             session.setAttribute("user", user);
             userService.updateLastLoginTime(user);
+
             if (log.isDebugEnabled()) {
                 log.debug("登录用户为{}", user.getUserName());
             }
-
+            serverResponse = ServerResponse.createBySuccess("登录成功", JwtUtil.createToken(userName, userService.findByUserName(userName).getPassword()));
         } catch (Exception e) {
             log.error("登录失败，用户名[{}]", userName, e);
             token.clear();
+            serverResponse = ServerResponse.createByErrorCodeMessage(ResponseCode.UNAUTHORIZED.getCode(), "登录失败:" + e.getMessage());
         }
         return serverResponse;
     }
@@ -73,5 +76,17 @@ public class LoginController {
     @RequestMapping("/loginPage")
     public ModelAndView loginPage() {
         return new ModelAndView("login");
+    }
+
+    @RequestMapping(value = "/unauthorized/{msg}")
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ServerResponse unauthorized(@PathVariable("msg") String msg) {
+        return ServerResponse.createByErrorCodeMessage(401, "Unauthorized:" + msg);
+    }
+
+    @RequestMapping(value = "/401")
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ServerResponse unauthorized() {
+        return ServerResponse.createByErrorCodeMessage(401, "Unauthorized");
     }
 }
