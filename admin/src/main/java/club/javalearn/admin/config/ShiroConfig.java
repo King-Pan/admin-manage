@@ -3,7 +3,6 @@ package club.javalearn.admin.config;
 import club.javalearn.admin.filter.JwtFilter;
 import club.javalearn.admin.shiro.DefaultAuthorizingRealm;
 import club.javalearn.admin.shiro.LoginLimitHashedCredentialsMatcher;
-import club.javalearn.admin.shiro.MyRealm;
 import net.sf.ehcache.CacheManager;
 import org.apache.shiro.mgt.DefaultSessionStorageEvaluator;
 import org.apache.shiro.mgt.DefaultSubjectDAO;
@@ -19,6 +18,7 @@ import org.springframework.context.annotation.DependsOn;
 import javax.servlet.Filter;
 import java.util.HashMap;
 import java.util.Map;
+
 
 /**
  * Created with IntelliJ IDEA.
@@ -83,7 +83,7 @@ public class ShiroConfig {
     public DefaultAuthorizingRealm getDefaultAuthorizingRealm() {
         DefaultAuthorizingRealm authorizingRealm = new DefaultAuthorizingRealm();
         // 配置自定义的密码比较器
-        authorizingRealm.setCredentialsMatcher(loginLimitHashedCredentialsMatcher());
+        //authorizingRealm.setCredentialsMatcher(loginLimitHashedCredentialsMatcher());
         return authorizingRealm;
     }
 

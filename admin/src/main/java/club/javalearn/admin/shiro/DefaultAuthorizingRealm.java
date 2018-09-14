@@ -67,7 +67,7 @@ public class DefaultAuthorizingRealm extends AuthorizingRealm {
             user = userService.findByUserName(userName);
         }
         //放入shiro.调用CredentialsMatcher检验密码
-        return new SimpleAuthenticationInfo(user, user.getPassword(), ByteSource.Util.bytes(user.getCredentialsSalt()), this.getClass().getName());
+        return new SimpleAuthenticationInfo(user, user.getPassword(), this.getClass().getName());
     }
 
     /**
