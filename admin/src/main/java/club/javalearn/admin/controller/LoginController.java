@@ -64,7 +64,7 @@ public class LoginController {
 
             User user = userService.findByUserName(userName);
             if (user != null && user.getPassword().equals(passwordHelper.encryptPassword(user, password))) {
-                log.info("===============登录成功");
+                log.info("===============登录成功 ");
             }
             session.setAttribute("user", user);
             userService.updateLastLoginTime(user);
@@ -75,7 +75,7 @@ public class LoginController {
             serverResponse = ServerResponse.createBySuccess("登录成功", JwtUtil.createToken(userName, userService.findByUserName(userName).getPassword()));
         } catch (Exception e) {
             log.error("登录失败，用户名[{}]", userName, e);
-            token.clear();
+            //token.clear();
             serverResponse = ServerResponse.createByErrorCodeMessage(ResponseCode.UNAUTHORIZED.getCode(), "登录失败:" + e.getMessage());
         }
         return serverResponse;
