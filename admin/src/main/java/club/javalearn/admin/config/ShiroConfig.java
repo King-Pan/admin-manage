@@ -43,15 +43,18 @@ public class ShiroConfig {
         factoryBean.setSecurityManager(securityManager);
         factoryBean.setUnauthorizedUrl("/401");
 
+
         /*
          * 自定义url规则
          * http://shiro.apache.org/web.html#urls-
          */
         Map<String, String> filterRuleMap = new HashMap<>(10);
         // 所有请求通过我们自己的JWT Filter
+        // 访问 /unauthorized/** 不通过JWTFilter
+        filterRuleMap.put("/unauthorized/**", "anon");
+        filterRuleMap.put("/401", "anon");
         filterRuleMap.put("/**", "jwt");
         // 访问401和404页面不通过我们的Filter
-        filterRuleMap.put("/401", "anon");
         factoryBean.setFilterChainDefinitionMap(filterRuleMap);
         return factoryBean;
     }

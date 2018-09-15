@@ -2,6 +2,7 @@ package club.javalearn.admin.common;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 
@@ -13,12 +14,13 @@ import java.io.Serializable;
  * Time: 上午11:31
  * Description: No Description
  */
+@Component
 @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
 public class ServerResponse<T> implements Serializable {
     private int status;
     private String msg;
     private T data;
-
+    public ServerResponse(){}
     private ServerResponse(int status) {
         this.status = status;
     }

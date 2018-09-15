@@ -1,22 +1,28 @@
 package club.javalearn.admin.shiro;
 
+import club.javalearn.admin.exception.UnauthorizedException;
 import club.javalearn.admin.model.Permission;
 import club.javalearn.admin.model.Role;
 import club.javalearn.admin.model.User;
 import club.javalearn.admin.service.UserService;
 import club.javalearn.admin.utils.JwtUtil;
+import com.auth0.jwt.exceptions.SignatureVerificationException;
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shiro.authc.*;
+import org.apache.shiro.authc.AuthenticationException;
+import org.apache.shiro.authc.AuthenticationInfo;
+import org.apache.shiro.authc.AuthenticationToken;
+import org.apache.shiro.authc.SimpleAuthenticationInfo;
 import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.authz.SimpleAuthorizationInfo;
 import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
-import org.apache.shiro.util.ByteSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -39,35 +45,45 @@ public class DefaultAuthorizingRealm extends AuthorizingRealm {
     /**
      * 认证.登录
      *
-     * @param token 用户信息
+     * @param authenticationToken 用户信息
      * @return AuthenticationInfo
      * @throws AuthenticationException
      */
     @Override
-    protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) throws AuthenticationException {
+    protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken authenticationToken) throws AuthenticationException {
         String userName;
         User user;
-        if (token instanceof JwtToken) {
-            JwtToken jwtToken = (JwtToken) token;
-            userName = JwtUtil.getUsername(jwtToken.getCredentials().toString());
-            if (userName == null) {
-                throw new AuthenticationException("token invalid");
-            }
-            user = userService.findByUserName(userName);
-            if (user == null) {
-                throw new AuthenticationException("User didn't existed!");
-            }
-            if (!JwtUtil.verify(jwtToken.getCredentials().toString(), userName, user.getPassword())) {
-                throw new AuthenticationException("Username or password error");
-            }
-        } else {
-            //获取用户输入的token
-            UsernamePasswordToken utoken = (UsernamePasswordToken) token;
-            userName = utoken.getUsername();
-            user = userService.findByUserName(userName);
+        String token = (String) authenticationToken.getCredentials();
+
+        userName = JwtUtil.getUsername(token);
+        if (userName == null) {
+            throw new UnauthorizedException("token invalid");
         }
+        user = userService.findByUserName(userName);
+        if (user == null) {
+            throw new UnauthorizedException("User didn't existed!");
+        }
+
+        try {
+            JwtUtil.verify(token, userName, user.getPassword());
+        }catch (TokenExpiredException exception) {
+            log.error(exception.getMessage(), exception);
+            throw new AuthenticationException("密码已过期");
+        } catch (SignatureVerificationException exception){
+            log.error(exception.getMessage(), exception);
+            throw new AuthenticationException("账号密码错误");
+        }catch (AuthenticationException exception){
+            log.error(exception.getMessage(),exception);
+            throw new AuthenticationException(exception.getMessage());
+        }catch (Exception exception){
+            log.error(exception.getMessage(), exception);
+            throw new AuthenticationException(exception.getMessage());
+        }
+
+
+
         //放入shiro.调用CredentialsMatcher检验密码
-        return new SimpleAuthenticationInfo(user.getPassword(), user.getPassword(), this.getClass().getName());
+        return new SimpleAuthenticationInfo(token, token, this.getClass().getName());
     }
 
     /**
@@ -79,11 +95,15 @@ public class DefaultAuthorizingRealm extends AuthorizingRealm {
     @Override
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principal) {
         //获取session中的用户
-        User user = (User) principal.fromRealm(this.getClass().getName()).iterator().next();
+        //User user = (User) principal.fromRealm(this.getClass().getName()).iterator().next();
+        String userName = JwtUtil.getUsername(principal.toString());
+        User user = userService.findByUserName(userName);
         List<String> permissions = new ArrayList<>();
         Set<Role> roles = user.getRoles();
+        Set<String> roleSet = new HashSet<>(10);
         if (roles.size() > 0) {
             for (Role role : roles) {
+                roleSet.add(role.getRoleCode());
                 Set<Permission> permissionList = role.getPermissions();
                 if (CollectionUtils.isNotEmpty(permissionList)) {
                     for (Permission permission : permissionList) {
@@ -100,6 +120,7 @@ public class DefaultAuthorizingRealm extends AuthorizingRealm {
         SimpleAuthorizationInfo info = new SimpleAuthorizationInfo();
         //将权限放入shiro中.
         info.addStringPermissions(permissions);
+        info.addRoles(roleSet);
         return info;
     }
 
@@ -111,6 +132,6 @@ public class DefaultAuthorizingRealm extends AuthorizingRealm {
 
     @Override
     public boolean supports(AuthenticationToken token) {
-        return token instanceof JwtToken || token instanceof UsernamePasswordToken;
+        return token instanceof JwtToken ;
     }
 }

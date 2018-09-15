@@ -2,7 +2,6 @@ package club.javalearn.admin.filter;
 
 import club.javalearn.admin.shiro.JwtToken;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.apache.shiro.web.filter.authc.BasicHttpAuthenticationFilter;
 import org.springframework.http.HttpStatus;
@@ -35,12 +34,12 @@ public class JwtFilter extends BasicHttpAuthenticationFilter {
         if (isLoginAttempt(request, response)) {
             //如果存在，则进入 executeLogin 方法执行登入，检查 token 是否正确
             try {
-                executeLogin(request, response);
-                return true;
+                return executeLogin(request, response);
             } catch (Exception e) {
                 //token 错误
+                log.error("认证出错了......");
                 log.error(e.getMessage(), e);
-                responseError(response, e.getMessage());
+                responseError(response, "token认证失败");
             }
         }
         //如果请求头不存在 Token，则可能是执行登陆操作或者是游客状态访问，无需检查 token，直接返回 true
@@ -62,7 +61,7 @@ public class JwtFilter extends BasicHttpAuthenticationFilter {
      * 执行登陆操作
      */
     @Override
-    protected boolean executeLogin(ServletRequest request, ServletResponse response) throws Exception {
+    protected boolean executeLogin(ServletRequest request, ServletResponse response) {
         HttpServletRequest httpServletRequest = (HttpServletRequest) request;
         String token = httpServletRequest.getHeader("Token");
         JwtToken jwtToken = new JwtToken(token);
@@ -98,7 +97,7 @@ public class JwtFilter extends BasicHttpAuthenticationFilter {
             HttpServletResponse httpServletResponse = (HttpServletResponse) response;
             //设置编码，否则中文字符在重定向时会变为空字符串
             message = URLEncoder.encode(message, "UTF-8");
-            httpServletResponse.sendRedirect("/unauthorized/" + message);
+            httpServletResponse.sendRedirect("/api/unauthorized/" + message);
         } catch (IOException e) {
             log.error(e.getMessage());
         }

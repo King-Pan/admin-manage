@@ -19,7 +19,6 @@ import java.util.Date;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString(exclude = {"roles"})
 @ApiModel(value = "UserInfo", description = "用户信息")
 public class UserInfo implements Serializable {
 

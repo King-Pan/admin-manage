@@ -7,15 +7,13 @@ import club.javalearn.admin.service.UserService;
 import club.javalearn.admin.utils.JwtUtil;
 import club.javalearn.admin.utils.PasswordHelper;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.shiro.SecurityUtils;
-import org.apache.shiro.authc.UsernamePasswordToken;
-import org.apache.shiro.subject.Subject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpSession;
+import java.io.UnsupportedEncodingException;
 
 /**
  * Created with IntelliJ IDEA.
@@ -88,8 +86,7 @@ public class LoginController {
     }
 
     @RequestMapping(value = "/unauthorized/{msg}")
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    public ServerResponse unauthorized(@PathVariable("msg") String msg) {
+    public ServerResponse unauthorized(@PathVariable("msg") String msg) throws UnsupportedEncodingException {
         return ServerResponse.createByErrorCodeMessage(401, "Unauthorized:" + msg);
     }
 
