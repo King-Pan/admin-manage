@@ -7,6 +7,8 @@ import 'iview/dist/styles/iview.css'
 import VueWechatTitle from 'vue-wechat-title'
 import axios from './api/index'
 import qs from 'qs'
+import {setToken} from "./assets/js/token";
+
 Vue.prototype.$axios = axios
 
 Vue.prototype.$qs = qs
@@ -18,6 +20,9 @@ Vue.config.productionTip = false
 let app = new Vue({
     router,
     store,
-    render: h => h(App)
+    render: h => h(App),
+    mount(){
+        setToken('adccc')
+    }
 }).$mount('#app')
 

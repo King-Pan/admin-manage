@@ -21,6 +21,7 @@
 </template>
 
 <script>
+    import {setToken} from "../../assets/js/token";
 
     export default {
         name: 'LoginForm',
@@ -62,19 +63,36 @@
             handleSubmit() {
                 this.$refs.loginForm.validate((valid) => {
                     if (valid) {
+                        var _this = this;
                         console.log('登陆成功')
-                        var data = {userName: 'admin', password: '123456'}
-                        this.$axios.post("/sso/login", this.$qs.stringify({
-                            userName: 'admin',
-                            password: '123456'
-                        }, {indices: false}), response => {
-                            if (response.status >= 200 && response.status < 300) {
-                                console.log(response.data);
-                            } else {
-                                console.log(response.message);
+                        var data = {userName: 'supAdmin', password: '888888'}
+                        this.$axios({
+                            method: 'post',
+                            url: '/login',
+                            data: this.$qs.stringify({
+                                userName: 'supAdmin',
+                                password: '888888'
+                            })
+                        }).then((req) => {
+                            console.log(req.data)
+                            const data = req.data
+                            if(data.status === 200){
+                                setToken(data.data)
+                                console.log(_this)
+                                _this.$router.push("/")
                             }
-                            console.log(response)
                         })
+                        // this.$axios.post("/login", this.$qs.stringify({
+                        //     userName: 'supAdmin',
+                        //     password: '888888'
+                        // }, {indices: false}), response => {
+                        //     if (response.status >= 200 && response.status < 300) {
+                        //         console.log(response.data);
+                        //     } else {
+                        //         console.log(response.message);
+                        //     }
+                        //     console.log(response)
+                        // })
                     }
                 })
             }

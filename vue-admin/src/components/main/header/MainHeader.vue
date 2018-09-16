@@ -21,12 +21,23 @@
                     </BreadcrumbItem>
                 </Breadcrumb>
             </Col>
-            <Col span="6">
+            <Col span="6" order="3">
                 <div>&nbsp;</div>
             </Col>
-            <Col span="6">
+            <Col span="4" order="4">
+                &nbsp;
+            </Col>
+            <Col span="1" order="5">
                 <FullScreen v-model="isFullScreen"/>
-                <!--<User/>-->
+            </Col>
+            <Col span="1" order="6">
+                <Dropdown @click="handleClick">
+                    <Avatar src="https://i.loli.net/2017/08/21/599a521472424.jpg"/>
+                    <Icon :size="18" type="md-arrow-dropdown"></Icon>
+                    <DropdownMenu slot="list">
+                        <DropdownItem name="logout">退出登录</DropdownItem>
+                    </DropdownMenu>
+                </Dropdown>
             </Col>
         </Row>
     </Header>
@@ -57,11 +68,21 @@
         methods: {
             collapsedSider() {
                 this.$emit('collapsedSider')
+            },
+            handleClick(){
+
             }
         }
     }
 </script>
 
-<style scoped>
-
+<style lang="less">
+    .full-screen-btn-con .ivu-tooltip-rel{
+        height: 64px;
+        line-height: 64px;
+    i{
+        cursor: pointer;
+    }
+    float: right;
+    }
 </style>

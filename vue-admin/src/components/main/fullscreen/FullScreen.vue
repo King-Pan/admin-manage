@@ -3,13 +3,7 @@
         <Tooltip :content="value ? '退出全屏' : '全屏'" placement="bottom">
             <Icon @click.native="handleChange" :type="value ? 'md-contract' : 'md-expand'" :size="23"></Icon>
         </Tooltip>
-        <Dropdown @on-click="handleClick">
-            <Avatar :src="userAvator"/>
-            <Icon :size="18" type="md-arrow-dropdown"></Icon>
-            <DropdownMenu slot="list">
-                <DropdownItem name="logout">退出登录</DropdownItem>
-            </DropdownMenu>
-        </Dropdown>
+
     </div>
 </template>
 
@@ -83,7 +77,7 @@
 <style lang="less">
     .full-screen-btn-con .ivu-tooltip-rel{
         height: 64px;
-        line-height: 56px;
+        line-height: 64px;
         i{
             cursor: pointer;
         }

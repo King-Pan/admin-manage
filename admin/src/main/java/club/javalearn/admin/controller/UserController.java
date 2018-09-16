@@ -1,11 +1,9 @@
 package club.javalearn.admin.controller;
 
 import club.javalearn.admin.common.ServerResponse;
-import org.apache.shiro.authz.annotation.RequiresAuthentication;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.apache.shiro.authz.annotation.RequiresRoles;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -21,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     @RequestMapping("/list")
-    @RequiresAuthentication
+    @RequiresPermissions("user:list")
     public Object list() {
         System.out.println("/user/list");
         ServerResponse serverResponse = ServerResponse.createBySuccess("查询成功", "Hello Shior JWT");

@@ -2,12 +2,28 @@
     <div class="layout">
         <Layout>
             <!--<SiderMenu ref="sider"/>-->
-            <Sider ref="sider" style="min-height: 700px" hide-trigger collapsible :collapsed-width="78" v-model="isCollapsed">
-                <Menu active-name="1-2" theme="dark" width="auto" :class="menuitemClasses">
+            <Sider ref="sider" style="min-height: 700px;" hide-trigger collapsible :collapsed-width="78" v-model="isCollapsed">
+                <Menu active-name="1-1" theme="dark" width="auto" :class="menuitemClasses">
                     <MenuItem name="1-1">
-                        <Icon type="ios-navigate"></Icon>
-                        <span>Option 1</span>
+                        <Icon type="ios-home" />
+                        <span>主页</span>
                     </MenuItem>
+                    <Submenu name="1-2">
+                        <template slot="title">
+                            <Icon type="ios-settings" />
+                           <span>系统设置</span>
+                        </template>
+                        <MenuItem name="2-1">
+                            <Icon type="md-person" />
+                            <span>用户管理</span>
+                        </MenuItem>
+                        <MenuItem name="2-2">Option 6</MenuItem>
+                        <Submenu name="3">
+                            <template slot="title">Submenu</template>
+                            <MenuItem name="3-1">Option 7</MenuItem>
+                            <MenuItem name="3-2">Option 8</MenuItem>
+                        </Submenu>
+                    </Submenu>
                     <MenuItem name="1-2">
                         <Icon type="ios-search"></Icon>
                         <span>Option 2</span>
