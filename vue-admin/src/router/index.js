@@ -18,7 +18,6 @@ const router = new Router({
 router.beforeEach((to, from, next) => {
   //判断是否登录
   const token = getToken()
-  console.log(token)
   if (!token && to.name !== LOGIN_PAGE_NAME) {
     // 未登录且要跳转的页面不是登录页
     console.log('没有登录，并且请求地址不是登录页面')

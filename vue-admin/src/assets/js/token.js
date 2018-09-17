@@ -4,7 +4,11 @@ import Cookies from 'js-cookie'
 export const TOKEN_KEY = 'token'
 
 export const setToken = (token) => {
-  Cookies.set(TOKEN_KEY, token, {expires:  1})
+  if(token){
+      Cookies.set(TOKEN_KEY, token, {expires:  1})
+  }else{
+      Cookies.remove(TOKEN_KEY);
+  }
 }
 
 export const getToken = () => {

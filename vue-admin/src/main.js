@@ -5,13 +5,19 @@ import store from './store/'
 import iview from 'iview'
 import 'iview/dist/styles/iview.css'
 import VueWechatTitle from 'vue-wechat-title'
-import axios from './api/index'
+import {getRequest, postRequest, deleteRequest, putRequest, uploadFileRequest} from './api/index'
 import qs from 'qs'
-import {setToken} from "./assets/js/token";
 
-Vue.prototype.$axios = axios
+//Vue.prototype.$axios = axios
 
 Vue.prototype.$qs = qs
+
+Vue.prototype.getRequest = getRequest;
+Vue.prototype.postRequest = postRequest;
+Vue.prototype.deleteRequest = deleteRequest;
+Vue.prototype.putRequest = putRequest;
+Vue.prototype.uploadFileRequest = uploadFileRequest;
+
 
 Vue.use(iview)
 Vue.use(VueWechatTitle)
@@ -20,9 +26,6 @@ Vue.config.productionTip = false
 let app = new Vue({
     router,
     store,
-    render: h => h(App),
-    mount(){
-        setToken('adccc')
-    }
+    render: h => h(App)
 }).$mount('#app')
 

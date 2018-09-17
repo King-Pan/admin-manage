@@ -21,7 +21,7 @@
 </template>
 
 <script>
-    import {setToken} from "../../assets/js/token";
+    import {Message} from 'iview'
 
     export default {
         name: 'LoginForm',
@@ -66,33 +66,21 @@
                         var _this = this;
                         console.log('登陆成功')
                         var data = {userName: 'supAdmin', password: '888888'}
-                        this.$axios({
-                            method: 'post',
-                            url: '/login',
-                            data: this.$qs.stringify({
-                                userName: 'supAdmin',
-                                password: '888888'
-                            })
+                        this.$Spin.show();
+                        this.postRequest('/login', {
+                            userName: 'supAdmin',
+                            password: '888888'
                         }).then((req) => {
-                            console.log(req.data)
-                            const data = req.data
-                            if(data.status === 200){
-                                setToken(data.data)
-                                console.log(_this)
-                                _this.$router.push("/")
+                            this.$Spin.hide();
+                            if (req && req.data && req.data.status === 200) {
+                                const data = req.data
+                                if (data.status === 200) {
+                                    _this.$store.dispatch('user/login', data.data);
+                                    //setToken(data.data)
+                                    _this.$router.push("/")
+                                }
                             }
                         })
-                        // this.$axios.post("/login", this.$qs.stringify({
-                        //     userName: 'supAdmin',
-                        //     password: '888888'
-                        // }, {indices: false}), response => {
-                        //     if (response.status >= 200 && response.status < 300) {
-                        //         console.log(response.data);
-                        //     } else {
-                        //         console.log(response.message);
-                        //     }
-                        //     console.log(response)
-                        // })
                     }
                 })
             }

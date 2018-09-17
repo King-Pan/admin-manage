@@ -31,7 +31,7 @@
                 <FullScreen v-model="isFullScreen"/>
             </Col>
             <Col span="1" order="6">
-                <Dropdown @click="handleClick">
+                <Dropdown @on-click="handleClick">
                     <Avatar src="https://i.loli.net/2017/08/21/599a521472424.jpg"/>
                     <Icon :size="18" type="md-arrow-dropdown"></Icon>
                     <DropdownMenu slot="list">
@@ -46,10 +46,11 @@
 <script>
     import FullScreen from '../fullscreen/FullScreen'
     import User from '../user/User'
+
     export default {
         name: 'MainHeader',
-        data(){
-            return{
+        data() {
+            return {
                 isFullScreen: true
             }
         },
@@ -69,20 +70,25 @@
             collapsedSider() {
                 this.$emit('collapsedSider')
             },
-            handleClick(){
-
+            handleClick(name) {
+                switch (name) {
+                    case 'logout':
+                        this.$store.dispatch('user/logout')
+                        this.$router.push('/login')
+                        break
+                }
             }
         }
     }
 </script>
 
 <style lang="less">
-    .full-screen-btn-con .ivu-tooltip-rel{
+    .full-screen-btn-con .ivu-tooltip-rel {
         height: 64px;
         line-height: 64px;
-    i{
-        cursor: pointer;
-    }
-    float: right;
+        i {
+            cursor: pointer;
+        }
+        float: right;
     }
 </style>
